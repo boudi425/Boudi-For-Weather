@@ -1,0 +1,57 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap');
+@import "tailwindcss";
+
+@layer base {
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    body {
+        background-image: radial-gradient(at 0% 0%, #764ba2 0%, transparent 50%),
+        radial-gradient(at 100% 0%, #667eea 0%, transparent 50%),
+        radial-gradient(at 100% 100%, #311b92 0%, transparent 50%),
+        radial-gradient(at 0% 100%, #4facfe 0%, transparent 50%);
+        font-family: "Lato", sans-serif;
+    }
+}
+
+@theme {
+  /* Variant 1: Sunny / Clear */
+  --background-image-weather-sunny: radial-gradient(at 0% 0%, #f7b733 0%, transparent 50%),
+    radial-gradient(at 100% 0%, #fc4a1a 0%, transparent 50%),
+    radial-gradient(at 100% 100%, #f6d365 0%, transparent 50%),
+    radial-gradient(at 0% 100%, #fda085 0%, transparent 50%);
+
+  /* Variant 2: Night (Deep Indigo) */
+  --background-image-weather-night: radial-gradient(at 0% 0%, #0f0c29 0%, transparent 50%),
+    radial-gradient(at 100% 0%, #302b63 0%, transparent 50%),
+    radial-gradient(at 100% 100%, #24243e 0%, transparent 50%),
+    radial-gradient(at 0% 100%, #000000 0%, transparent 50%);
+
+  /* Variant 3: Cloudy / Fog */
+  --background-image-weather-cloudy: radial-gradient(at 0% 0%, #bdc3c7 0%, transparent 50%),
+    radial-gradient(at 100% 0%, #2c3e50 0%, transparent 50%),
+    radial-gradient(at 100% 100%, #757f9a 0%, transparent 50%),
+    radial-gradient(at 0% 100%, #d7dde8 0%, transparent 50%);
+
+  /* Variant 4: Rainy / Stormy */
+  --background-image-weather-rainy: radial-gradient(at 0% 0%, #4b6cb7 0%, transparent 50%),
+    radial-gradient(at 100% 0%, #182848 0%, transparent 50%),
+    radial-gradient(at 100% 100%, #3a1c71 0%, transparent 50%),
+    radial-gradient(at 0% 100%, #d76d77 0%, transparent 50%);
+    --color-surface: rgba(245, 245, 247, 0.1);
+    --shadow-inset-white: inset 0 1px 0 0 rgba(255, 255, 255, 0.12);
+    --shadow-card: inset 0 1px 0 0 rgba(255, 255, 255, 0.12), 0 1px 2px 0 rgba(0, 0, 0, 0.08), 0 12px 32px 0px rgba(0, 0, 0, 0.18);
+    --shadow-inner: inset 0 1px 0 0 rgba(0, 0, 0, 0.1);
+    --shadow-inner-white: inset 0 1px 0 0 rgba(255, 255, 255, 0.12);
+    --shadow-inner-focus: inset 0 1px 0 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.08);
+    --shadow-focus: 0 4px 4px 0 rgba(0, 0, 0, 0.25), 0 6px 16px 0px rgba(0, 0, 0, 0.2);
+    --shadow-bubble: inset 0 0 15px rgba(255, 255, 255, 0.2);
+}
+@layer components{
+  .slider {
+    @apply bg-white/10 border border-white/30 rounded-4xl absolute cursor-pointer top-0 left-0 bottom-0 right-0 backdrop-blur-sm duration-400 before:absolute before:h-4.5 before:w-4.5 before:left-1 before:bottom-0.75 before:bg-white before:shadow-md before:duration-400 before:rounded-full;
+  }
+}
+
