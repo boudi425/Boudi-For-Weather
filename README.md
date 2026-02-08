@@ -63,23 +63,10 @@ npm run build
 ```bash
 npm run preview
 ```
-
-## 📦 Project Structure
-
-```
-Boudi-For-Weather/
-├── react/                 # React application root
-│   ├── src/              # Source code
-│   ├── package.json      # Dependencies and scripts
-│   └── vite.config.ts    # Vite configuration
-├── README.md             # Project documentation
-└── LICENSE               # Project license
-```
-
 ## 🔗 Project Links
 
 - **Repository**: [https://github.com/boudi425/Boudi-For-Weather](https://github.com/boudi425/Boudi-For-Weather)
-- **Live Demo**: [Add your deployed link here]
+- **Live Demo**: [[Add your deployed link here](https://boudi-for-weather-gylr.vercel.app/)]
 - **Weather API Docs**: [https://www.weatherapi.com/docs/](https://www.weatherapi.com/docs/)
 
 ## 📝 License
