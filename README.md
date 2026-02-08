@@ -1,5 +1,4 @@
 
-=======
 # 🌤️ Boudi-For-Weather
 
 A modern, simple, and elegant weather application built with React, TypeScript, and Vite. Get accurate weather information with a clean and intuitive user interface.
