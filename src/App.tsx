@@ -40,6 +40,7 @@ type airQualityType = {
   label: string;
 }
 type Status = "idle" | "loading" | "success" | "error";
+type forecastData = Awaited<ReturnType<typeof fetchWeather>>;
 const EPA_LEVELS = {
   1: { label: "Good" },
   2: { label: "Moderate" },
@@ -56,7 +57,7 @@ const AIR_ADVICE = {
   5: "Health warnings for everyone",
   6: "Stay indoors if possible"
 };
-type forecastData = Awaited<ReturnType<typeof fetchWeather>>;
+
 export default function App() {
   const switchRef = useRef<HTMLInputElement>(null);
   const [inputData, setInputData] = useState<string>("");
@@ -79,8 +80,8 @@ export default function App() {
     setStatus("loading");
     const newData = await fetchWeather(inputData);
     setData(newData);
+    console.log(`Current is ${forecast}`);
     updateBackground(newData?.current?.condition?.code, newData?.current?.is_day);
-    console.log(data);
     const epaIndex = newData?.current?.air_quality["us-epa-index"] as 1 | 2 | 3 | 4 | 5 | 6;
     setAirQuality(EPA_LEVELS[epaIndex]);
     setAirAdvice(AIR_ADVICE[epaIndex]);
@@ -90,6 +91,7 @@ export default function App() {
       setError("Location not found");
       switchRef.current?.focus();
     } else {
+      setForecast(false);
       setStatus("success");
       setError(null);
     }
@@ -97,10 +99,10 @@ export default function App() {
   if (status === "loading") {
     return (
       <main>
-        <div className="flex flex-col h-screen px-4 py-6 transition-all">
+        <div className="flex flex-col h-screen px-4 py-6 transition-all md:px-24 md:justify-center md:items-center">
           <p className="text-white top-0 text-center">Boudi For Weather</p>
           <p className="text-white text-center text-xl font-medium text-shadow-lg mt-4">Hello, Enter the name of your country or city to Start</p>
-          <div className="p-4 flex justify-center gap-4 min-h-135 items-center bg-surface rounded-2xl shadow-card backdrop-blur-xl mt-6 transition-all">
+          <div className="p-4 flex justify-center gap-4 min-h-135 md:min-w-150 md:max-w-150 items-center bg-surface rounded-2xl shadow-card backdrop-blur-xl mt-6 transition-all">
             <div className="w-8 h-8 rounded-full border-4 animate-spin border-surface border-t-white" />
             <p className="text-white font-semibold">Searching country...</p>
           </div>
@@ -110,10 +112,10 @@ export default function App() {
   }
   return (
       <main>
-        <div className="flex flex-col h-screen px-4 py-6 transition-all">
+        <div className="flex flex-col h-screen px-4 py-6 transition-all md:px-24 md:justify-center md:items-center">
           <p className="text-white top-0 text-center">Boudi For Weather</p>
           <p className="text-white text-center text-xl font-medium text-shadow-lg mt-4">Hello, Enter the name of your country or city to Start</p>
-          <div className="p-4 flex flex-col justify-center min-h-135 items-center bg-surface rounded-2xl shadow-card backdrop-blur-xl mt-6 transition-all">
+          <div className="p-4 flex flex-col justify-center max-h-200 md:max-h-200 md:w-100 items-center bg-surface rounded-2xl shadow-card backdrop-blur-xl mt-6 transition-all">
             <div className="flex items-center justify-center gap-2.5 mb-5">
               <p className="text-white font-semibold">Forecast For 3 Days</p>
               <div className="relative w-12 h-6.5">
@@ -143,7 +145,7 @@ export default function App() {
               <p className="text-center text-white/70">Feels like: {Math.floor(data?.current?.feelslike_c)}°C</p>
               <p className="text-center text-white/70">{data?.current?.condition?.text} - {airAdvice}</p>
             </div>
-            <AnimatePresence mode="wait">
+            {data && <AnimatePresence mode="wait">
               {!forecast ? 
                 (
                   <motion.div
@@ -168,8 +170,9 @@ export default function App() {
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.25, ease: "easeOut" }}
                   className="flex items-center justify-center flex-col gap-4 mt-4 w-full">
-                    {data?.forecast?.forecastday?.slice(1).map(day => (
-                      <div className="px-4 py-3 flex items-center justify-between w-full bg-white/5 text-white font-semibold rounded-semiCard shadow-inner-white-2">
+                  
+                    {data?.forecast?.forecastday?.slice(1).map((day: { date: string; date_epoch: string; day: { condition: { icon: string; }; maxtemp_c: number; mintemp_c: number; }; }) => (
+                      <div key={day?.date_epoch} className="px-4 py-3 flex items-center justify-between w-full bg-white/5 text-white font-semibold rounded-semiCard shadow-inner-white-2">
                         <p>{getDayName(day?.date)}</p>
                         <img src={`https://${day?.day?.condition?.icon}`} alt="Weather Icon" className="w-8 h-8" />
                         <p>{Math.floor(day?.day?.maxtemp_c)}°C / {Math.floor(day?.day?.mintemp_c)}°C</p>
@@ -178,10 +181,10 @@ export default function App() {
                   </motion.div>
                 )
               }
-            </AnimatePresence>
+            </AnimatePresence>}
           </div>
         </div>
-        <footer className="text-white/60 text-center font-medium text-sm py-3">© 2026 Boudi For Weather</footer>
+        <footer className="text-white/60 text-center font-medium text-sm py-3 mt-4">© 2026 Boudi For Weather</footer>
       </main>
     )
 }
