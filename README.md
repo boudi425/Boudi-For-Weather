@@ -66,7 +66,7 @@ npm run preview
 ## 🔗 Project Links
 
 - **Repository**: [https://github.com/boudi425/Boudi-For-Weather](https://github.com/boudi425/Boudi-For-Weather)
-- **Live Demo**: [(https://boudi-for-weather-gylr.vercel.app/)]
+- **Live Demo**: [Start Now!](https://boudi-for-weather-gylr.vercel.app/)
 - **Weather API Docs**: [https://www.weatherapi.com/docs/](https://www.weatherapi.com/docs/)
 
 ## 📝 License
