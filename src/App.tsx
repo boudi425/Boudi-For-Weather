@@ -1,11 +1,17 @@
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import weatherIcon from "./assets/weather.png"
-async function fetchWeather(inputData: string) {
-      const KEY = "51bfc3486f914f95b87112734260102";
-      const loader = await fetch(`https://api.weatherapi.com/v1/forecast.json?key=${KEY}&q=${inputData}&aqi=yes&days=4`);
-      const dataJSON = await loader.json();
-      return dataJSON;
+const KEY = "51bfc3486f914f95b87112734260102";
+async function autoCompleteSearch(query: string) {
+  const loader = await fetch(`https://api.weatherapi.com/v1/search.json?key=${KEY}&q=${query}`);
+  const searchJSON = await loader.json();
+  return searchJSON;
+}
+
+async function fetchWeather(cor: string) {
+  const loader = await fetch(`https://api.weatherapi.com/v1/forecast.json?key=${KEY}&q=${cor}&aqi=yes&days=4`);
+  const dataJSON = await loader.json();
+  return dataJSON;
 }
 function getDayName(dateString: string) {
   return new Date(dateString).toLocaleDateString("en-US", {
@@ -62,7 +68,10 @@ const AIR_ADVICE = {
 export default function App() {
   const forecastSwitch = JSON.parse(localStorage.getItem("forecast") || "true");
   const switchRef = useRef<HTMLInputElement>(null);
-  const [inputData, setInputData] = useState<string>("");
+  const [query, setQuery] = useState<string>("");
+  const [suggestions, setSuggestions] = useState([]);
+  const visibleSuggestions = query.length >= 2 ? suggestions.length : 0;
+  const [cor, setCor] = useState("");
   const [data, setData] = useState<forecastData | null>(null);
   const [airQuality, setAirQuality] = useState<airQualityType | null>(null);
   const [airAdvice, setAirAdvice] = useState<string | null>(null);
@@ -78,10 +87,35 @@ export default function App() {
       localStorage.setItem("forecast", JSON.stringify(true));
     }
   }
-  async function searchData() {
+  function handleItemClick(suggestionCor: string, suggestion: string) {
+    setQuery(suggestion);
+    setCor(suggestionCor);
+    setSuggestions([]);
+  }
+  useEffect(() => {
+    if (query.trim().length < 2) {
+      return;
+    }
+    const timeout = setTimeout(async () => {
+      const res = await autoCompleteSearch(query);
+      setSuggestions(res);
+    }, 300);
+    return () => clearTimeout(timeout);
+  }, [query]);
+  
+  async function searchData(query: string) {
     setStatus("loading");
-    const newData = await fetchWeather(inputData);
-    setData(newData);
+    let newData = null;
+    if (cor) {
+      const actualData = await fetchWeather(cor);
+      newData = actualData;
+      setData(newData);
+      setCor("");
+    } else {
+      const actualData = await fetchWeather(query);
+      newData = actualData;
+      setData(newData);
+    }
     updateBackground(newData?.current?.condition?.code, newData?.current?.is_day);
     const epaIndex = newData?.current?.air_quality["us-epa-index"] as 1 | 2 | 3 | 4 | 5 | 6;
     setAirQuality(EPA_LEVELS[epaIndex]);
@@ -123,13 +157,32 @@ export default function App() {
                 <span className="slider peer-checked:bg-green-500 peer-checked:before:translate-x-5" onClick={handleSwitchClick}></span>
               </div>
             </div>
-            <div className="flex items-center justify-center gap-2.5 mb-6">
-                <input type="text" value={inputData} onChange={(e) => setInputData(e.currentTarget.value)} placeholder="Enter city name"
+            <div className="flex items-center justify-center mb-6 flex-col relative w-full">
+              <div className="flex items-center justify-center gap-2.5">
+                <input type="text" value={query} onChange={(e) => setQuery(e.currentTarget.value)} placeholder="Enter city name"
                   className="bg-white/25 rounded-semiCard pl-3 pr-4 py-3 shadow-inner text-medium max-w-62.5 w-full h-12.5 placeholder:text-white/75 transition-shadow outline-none text-white focus:shadow-inner-focus"
                 />
-                <button onClick={searchData} className="cursor-pointer flex items-center justify-center text-sm font-bold px-5 py-3 rounded-semiCard bg-linear-135 from-white to-50% to-[#EDEDED] shadow-sm transition-all hover:shadow-focus hover:scale-105 active:scale-95">
+                <button onClick={() => searchData(query)} className="cursor-pointer flex items-center justify-center text-sm font-bold max-h-12.5 px-5 py-3 rounded-semiCard bg-linear-135 from-white to-50% to-[#EDEDED] shadow-sm transition-all hover:shadow-focus hover:scale-105 active:scale-95">
                   Search
                 </button>
+              </div>
+              <AnimatePresence>
+                  {visibleSuggestions > 0 && (
+                    <motion.ul
+                      initial={{opacity: 0, y: -6}}
+                      animate={{opacity: 1, y: 0}}
+                      exit={{opacity: 0, y: -6}}
+                      transition={{duration: 0.15}}
+                      className="absolute top-full left-0 mt-2 w-full z-20 rounded-semiCard bg-black/60 backdrop-blur-[25px] text-white/80 font-semibold shadow-inner-white overflow-hidden"
+                    >
+                      {suggestions.map((suggestion: {name: string, country: string, lat: string, lon: string}) => (
+                        <li key={suggestion.lon} className="px-4 py-2 cursor-pointer hover:bg-white/10" onClick={() => handleItemClick(`${suggestion.lat},${suggestion.lon}` ,suggestion.name)}>
+                          {suggestion?.name}, {suggestion?.country}
+                        </li>
+                      ))}
+                    </motion.ul>
+                  )}
+            </AnimatePresence>
             </div>
             <div className={`text-red-500 text-sm font-semibold flex flex-col items-center justify-center ${error ? "block" : "hidden"}`}>
                 <p>🤔 Hmm… that place doesn’t seem to exist...</p>
