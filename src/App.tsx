@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import weatherIcon from "./assets/weather.png"
 async function fetchWeather(inputData: string) {
       const KEY = "51bfc3486f914f95b87112734260102";
       const loader = await fetch(`https://api.weatherapi.com/v1/forecast.json?key=${KEY}&q=${inputData}&aqi=yes&days=4`);
@@ -59,28 +60,28 @@ const AIR_ADVICE = {
 };
 
 export default function App() {
+  const forecastSwitch = JSON.parse(localStorage.getItem("forecast") || "true");
   const switchRef = useRef<HTMLInputElement>(null);
   const [inputData, setInputData] = useState<string>("");
   const [data, setData] = useState<forecastData | null>(null);
   const [airQuality, setAirQuality] = useState<airQualityType | null>(null);
   const [airAdvice, setAirAdvice] = useState<string | null>(null);
-  const [forecast, setForecast] = useState(false);
+  const [isChecked, setIsChecked] = useState(false);
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
   function handleSwitchClick() {
     if (switchRef.current?.checked) {
       switchRef.current?.click();
-      setForecast(false)
+      localStorage.setItem("forecast", JSON.stringify(false));
     } else {
       switchRef.current?.click();
-      setForecast(true);
+      localStorage.setItem("forecast", JSON.stringify(true));
     }
   }
   async function searchData() {
     setStatus("loading");
     const newData = await fetchWeather(inputData);
     setData(newData);
-    console.log(`Current is ${forecast}`);
     updateBackground(newData?.current?.condition?.code, newData?.current?.is_day);
     const epaIndex = newData?.current?.air_quality["us-epa-index"] as 1 | 2 | 3 | 4 | 5 | 6;
     setAirQuality(EPA_LEVELS[epaIndex]);
@@ -91,7 +92,6 @@ export default function App() {
       setError("Location not found");
       switchRef.current?.focus();
     } else {
-      setForecast(false);
       setStatus("success");
       setError(null);
     }
@@ -119,7 +119,7 @@ export default function App() {
             <div className="flex items-center justify-center gap-2.5 mb-5">
               <p className="text-white font-semibold">Forecast For 3 Days</p>
               <div className="relative w-12 h-6.5">
-                <input ref={switchRef} type="checkbox" id="unitToggle" className="hidden z-9 peer checked:bg-green-500"/>
+                <input ref={switchRef} type="checkbox" id="unitToggle" className="hidden z-9 peer checked:bg-green-500" checked={isChecked} onChange={(e) => setIsChecked(e.target.checked)}/>
                 <span className="slider peer-checked:bg-green-500 peer-checked:before:translate-x-5" onClick={handleSwitchClick}></span>
               </div>
             </div>
@@ -137,32 +137,18 @@ export default function App() {
                 <p>(for example: Paris, FR)</p>
             </div>
             <div className="flex flex-col items-center justify-center gap-2 mb-6">
-              <p className="text-2xl font-semibold text-center text-white">{data?.location?.name}, {data?.location?.country}</p>
+              <p className="text-2xl font-semibold text-center text-white">{data ? `${data?.location?.name}, ${data?.location?.country}` : "--"}</p>
               <div className="w-25 h-25 bg-white/15 backdrop-blur-lg rounded-full flex items-center mb-4 justify-center border border-white/40 shadow-bubble">
-                <img src={`https://${data?.current?.condition?.icon}`} alt="Weather Icon" className="w-16 h-16" />
+                <img src={data ? `https://${data?.current?.condition?.icon}` : weatherIcon} alt="Weather Icon" className="w-16 h-16" />
               </div>
-              <p className="text-3xl text-center font-medium text-white">{Math.floor(data?.current?.temp_c)}°C</p>
-              <p className="text-center text-white/70">Feels like: {Math.floor(data?.current?.feelslike_c)}°C</p>
-              <p className="text-center text-white/70">{data?.current?.condition?.text} - {airAdvice}</p>
+              <p className="text-3xl text-center font-medium text-white">{data ? Math.floor(data?.current?.temp_c) : "--"}°C</p>
+              <p className="text-center text-white/70">Feels like: {data ? Math.floor(data?.current?.feelslike_c) : "--"}°C</p>
+              <p className="text-center text-white/70">{data ? data?.current?.condition?.text : "--"} - {data ? airAdvice : "--"}</p>
             </div>
             {data && <AnimatePresence mode="wait">
-              {!forecast ? 
-                (
-                  <motion.div
-                  key="state-a"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.25, ease: "easeOut" }}
-                  className="grid grid-cols-2 gap-4 p-4 w-full bg-white/20 backdrop-blur-[25px] text-white/80 font-semibold rounded-2xl shadow-inner-white">
-                    <p>Humidity: {data?.current?.humidity}%</p>
-                    <p>Cloud Rate: {data?.current?.cloud}%</p>
-                    <p>Air Quality: {airQuality?.label}</p>
-                    <p>Wind: {data?.current?.wind_kph}km/h {data?.current?.wind_dir}</p>
-                  </motion.div>
-                )
-                :
-                (
+              {forecastSwitch && isChecked ? 
+                  
+                  (
                   <motion.div 
                   key="state-b"
                   initial={{ opacity: 0, y: 10 }}
@@ -178,6 +164,21 @@ export default function App() {
                         <p>{Math.floor(day?.day?.maxtemp_c)}°C / {Math.floor(day?.day?.mintemp_c)}°C</p>
                       </div>  
                     ))}
+                  </motion.div>
+                )
+                :
+                (
+                  <motion.div
+                  key="state-a"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.25, ease: "easeOut" }}
+                  className="grid grid-cols-2 gap-4 p-4 w-full bg-white/20 backdrop-blur-[25px] text-white/80 font-semibold rounded-2xl shadow-inner-white">
+                    <p>Humidity: {data?.current?.humidity}%</p>
+                    <p>Cloud Rate: {data?.current?.cloud}%</p>
+                    <p>Air Quality: {airQuality?.label}</p>
+                    <p>Wind: {data?.current?.wind_kph}km/h {data?.current?.wind_dir}</p>
                   </motion.div>
                 )
               }
